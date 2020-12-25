@@ -5,28 +5,31 @@
 -Kayıtlar saatine göre sıralı bir şekilde 5'er 5'er toplandı.
 -En yüksek sayı, herhangi bir 5 dakikalık zaman dilimindeki en yüksek aktif kullanıcı sayıdır.
 
--Bu tarz bir çözüm için 'Maximum subarray problem' çözümlerine bakılabilir.
 
 
 ```SQL 
-create table abdulcelil_kurt.pageview_minute
+create or replace table abdulcelil_kurt.pageview_minute
 as 
-  select timestamp_trunc(pv.view_ts,hour) view_minute
-        ,hll_count.init(deviceid,15) approx_dist_user
+  select timestamp_trunc(pv.view_ts,minute) view_minute
+        ,hll_count.init(deviceid,24) approx_dist_user
   from abdulcelil_kurt.pageview pv
   group by 1;
 
 
-
-select max(five_min_sum)
-from (
-  select sum(pv_m.dist_user_cnt) over(order by pv_m.view_minute rows between 4 preceding and current row) as five_min_sum
+ select 
+    sum(dist_user_cnt) over(order by view_minute rows between current row and 4 following) as five_min_sum,
+    view_minute || '  -  ' || TIMESTAMP_ADD(view_minute, INTERVAL 5 MINUTE) time
   from (
     select view_minute, hll_count.merge(approx_dist_user) as dist_user_cnt
     from abdulcelil_kurt.pageview_minute
     group by view_minute
-      )as pv_m
-);
+    order by view_minute asc
+      )
+   order by five_min_sum desc
+   limit 1
+;
+/*476612 | 2020-03-03 23:02:00+00  -  2020-03-03 23:07:00+00 */
+
 ```
 
 
