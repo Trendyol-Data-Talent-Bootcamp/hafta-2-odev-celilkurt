@@ -17,12 +17,22 @@ with lead_board as(
     Sport, 
     medal_cnt desc
  )
- select sport,
+select 
+    sport,
+    first_champ,
+    third_champ,
+    fifth_champ
+from(
+    select 
+        sport,
         country as first_champ,
-      lead(country,2) over(partition by sport order by medal_cnt desc) as thrid_champ,
-      lead(country,4) over(partition by sport order by medal_cnt desc) as fitfh_champ,
-   from lead_board
-   order by sport
+        lead(country,2) over(partition by sport order by medal_cnt desc) as third_champ,
+        lead(country,4) over(partition by sport order by medal_cnt desc) as fifth_champ,
+        ROW_NUMBER() OVER (PARTITION BY sport ORDER BY medal_cnt DESC) AS row_number
+     from lead_board
+     order by sport)
+where
+  row_number = 1
 ;
 
 ```
