@@ -17,18 +17,20 @@ as
 
 
  select 
-    sum(dist_user_cnt) over(order by view_minute rows between current row and 4 following) as five_min_sum,
-    view_minute || '  -  ' || TIMESTAMP_ADD(view_minute, INTERVAL 5 MINUTE) time
-  from (
-    select view_minute, hll_count.merge(approx_dist_user) as dist_user_cnt
-    from abdulcelil_kurt.pageview_minute
-    group by view_minute
-    order by view_minute asc
-      )
-   order by five_min_sum desc
-   limit 1
-;
-/*476612 | 2020-03-03 23:02:00+00  -  2020-03-03 23:07:00+00 */
+    start_time || '  -  ' || TIMESTAMP_ADD(start_time, INTERVAL 5 MINUTE) as time_range, 
+    (select
+        hll_count.merge(approx_dist_user)
+     from
+        unnest(approx_user_array) approx_dist_user) as max_count
+from 
+    (select 
+        array_Agg(approx_dist_user) over(order by view_minute rows between current row and 4 following) as approx_user_array,
+        view_minute  as start_time
+     from abdulcelil_kurt.pageview_minute
+     order by view_minute asc)
+order by max_count desc
+limit 1;
+/*2020-03-03 20:38:00+00  -  2020-03-03 20:43:00+00  ---  230302 */
 
 ```
 
