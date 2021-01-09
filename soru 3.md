@@ -10,10 +10,10 @@
 ```SQL 
 create or replace table abdulcelil_kurt.pageview_minute
 as 
-  select timestamp_trunc(pv.view_ts,minute) view_minute
-        ,hll_count.init(deviceid,24) approx_dist_user
-  from abdulcelil_kurt.pageview pv
-  group by 1;
+  select timestamp_trunc(pv.view_ts,minute) view_minute
+        ,hll_count.init(deviceid,24) approx_dist_user
+  from abdulcelil_kurt.pageview pv
+  group by 1;
 
 
  select 
@@ -28,8 +28,7 @@ from
         view_minute  as start_time
      from abdulcelil_kurt.pageview_minute
      order by view_minute asc)
-order by max_count desc
-limit 1;
+order by start_time;
 /*2020-03-03 20:38:00+00  -  2020-03-03 20:43:00+00  ---  230302 */
 
 ```
